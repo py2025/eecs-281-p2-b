@@ -70,6 +70,8 @@
         "__tuple": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp"
     }
 }

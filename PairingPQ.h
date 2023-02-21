@@ -59,9 +59,8 @@ public:
     template<typename InputIterator>
     PairingPQ(InputIterator start, InputIterator end, COMP_FUNCTOR comp = COMP_FUNCTOR()) :
         BaseClass{ comp } {
-        while (start != end) {
-            this->push(*start);
-            ++start;
+        for (auto i = start; i < end; ++i) {
+            push(*i);
         }
     } // PairingPQ()
 
@@ -74,12 +73,12 @@ public:
         std::deque<Node*> dq;
         dq.push_back(other.root);
         while (!dq.empty()) {
-            if (dq.front()->sibling != nullptr)
-                dq.push_back(dq.front()->sibling);
-            if (dq.front()->child != nullptr)
-                dq.push_back(dq.front()->child);
-            
-            push(dq.front()->elt);
+            Node * node = dq.front();
+            if (node->sibling)
+                dq.push_back(node->sibling);
+            if (node->child)
+                dq.push_back(node->child);
+            push(node->elt);
             dq.pop_front();
         }
     } // PairingPQ()
@@ -99,15 +98,15 @@ public:
     // Description: Destructor
     // Runtime: O(n)
     ~PairingPQ() {
-        if (root == nullptr) return;
+        if (!root) return;
         
         std::deque<Node*> dq;
         dq.push_back(root);
         while (!dq.empty()) {
             Node* node = dq.front();
-            if (node->sibling != nullptr)
+            if (node->sibling)
                 dq.push_back(node->sibling);
-            if(node->child != nullptr)
+            if(node->child)
                 dq.push_back(node->child);
             dq.pop_front();
             delete node;
@@ -126,23 +125,20 @@ public:
         std::deque<Node*> dq;
         Node* node = root;
         dq.push_back(node);
+        root = nullptr;
 
-        if (node->child != nullptr)
-            dq.push_back(node->child);
-        node->child = nullptr;
-        dq.pop_front();
-
-        while (!dq.empty()) {
+        while(!dq.empty()) {
             node = dq.front();
-            if (node->sibling != nullptr)
+            if(node->sibling)
                 dq.push_back(node->sibling);
-            if (node->child != nullptr)
+            if(node->child)
                 dq.push_back(node->child);
+
+            node->prev = nullptr;
             node->sibling = nullptr;
             node->child = nullptr;
-            if (root != nullptr)
-                meld(node, root);
-            else root = node;
+            if(root == nullptr) root = node;
+            else root = meld(node, root);
             dq.pop_front();
         }
     } // updatePriorities()
@@ -169,19 +165,19 @@ public:
         Node* child = root->child;
         delete root;
         root = nullptr;
-        if (child == nullptr) return;
-        else if (child->sibling == nullptr) {
+        if (!child) return;
+        else if (!child->sibling) {
             child->prev = nullptr;
             root = child;
             return;
         }
 
         std::deque<Node*> dq;
-        while (child != nullptr) {
+        while (child) {
             Node* node = child;
             child = child->sibling;
-            child->sibling = nullptr;
-            child->prev = nullptr;
+            node->sibling = nullptr;
+            node->prev = nullptr;
             dq.push_back(node);
         }
 
@@ -194,6 +190,7 @@ public:
 
             dq.push_back(meld(a, b));
         }
+
         root = dq.front();
     } // pop()
 
@@ -234,9 +231,9 @@ public:
         node->elt = new_value;
         if (node == root) return;
 
-        if (node->prev == nullptr && node->sibling == nullptr) return;
+        if (!node->prev && !node->sibling) return;
 
-        if (node->sibling == nullptr)
+        if (!node->sibling)
             node->prev = nullptr;
         else {
             if (node->prev->child == node)
@@ -264,7 +261,7 @@ public:
     Node* addNode(const TYPE &val) {
         ++num;
         Node* node = new Node(val);
-        if (root == nullptr) root = node;
+        if (!root) root = node;
         else root = meld(node, root);
         return node;
     } // addNode()
